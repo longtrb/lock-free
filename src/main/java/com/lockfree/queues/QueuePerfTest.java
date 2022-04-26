@@ -1,5 +1,5 @@
 
-package uk.co.real_logic.queues;
+package com.lockfree.queues;
 
 import java.util.Queue;
 
@@ -7,22 +7,28 @@ public class QueuePerfTest
 {
     public static final int QUEUE_CAPACITY = 32 * 1024;
     public static final int REPETITIONS = 50 * 1000 * 1000;
-    public static final Integer TEST_VALUE = Integer.valueOf(777);
+    public static final Integer TEST_VALUE = Integer.valueOf(123);
 
     public static void main(final String[] args) throws Exception
     {
-        final Queue<Integer> queue = createQueue(args[0]);
 
-        for (int i = 0; i < 5; i++)
-        {
-            System.gc();
-            performanceRun(i, queue);
+        for(int k=1;k<7;k++){
+            Thread.sleep(8000);
+            final Queue<Integer> queue = createQueue(k);
+
+            for (int i = 0; i < 5; i++)
+            {
+                System.gc();
+                performanceRun(i, queue);
+            }
+            System.out.println("=========================================\n");
         }
+
     }
 
-    private static Queue<Integer> createQueue(final String option)
+    private static Queue<Integer> createQueue(int option)
     {
-        switch (Integer.parseInt(option))
+        switch (option)
         {
             case 1: return new OneToOneConcurrentArrayQueue<Integer>(QUEUE_CAPACITY);
             case 2: return new OneToOneConcurrentArrayQueue2<Integer>(QUEUE_CAPACITY);
@@ -57,9 +63,9 @@ public class QueuePerfTest
 
         final long duration = System.nanoTime() - start;
         final long ops = (REPETITIONS * 1000L * 1000L * 1000L) / duration;
-        System.out.format("%d - ops/sec=%,d - %s result=%d\n",
-                          Integer.valueOf(runNumber), Long.valueOf(ops),
-                          queue.getClass().getSimpleName(), result);
+        System.out.format("%s - test %d: ops/sec=%,d - result=%d\n",
+                queue.getClass().getSimpleName(),Integer.valueOf(runNumber), Long.valueOf(ops)
+                          , result);
     }
 
     public static class Producer implements Runnable

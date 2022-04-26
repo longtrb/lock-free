@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.real_logic.queues;
+package com.lockfree.queues;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -23,7 +23,7 @@ import java.util.Queue;
 public final class OneToOneConcurrentArrayQueue<E>
     implements Queue<E>
 {
-    private final E[] buffer;
+    private final E[] array;
 
     private volatile long tail = 0;
     private volatile long head = 0;
@@ -31,7 +31,7 @@ public final class OneToOneConcurrentArrayQueue<E>
     @SuppressWarnings("unchecked")
     public OneToOneConcurrentArrayQueue(final int capacity)
     {
-        buffer = (E[])new Object[capacity];
+        array = (E[])new Object[capacity];
     }
 
     public boolean add(final E e)
@@ -52,13 +52,13 @@ public final class OneToOneConcurrentArrayQueue<E>
         }
 
         final long currentTail = tail;
-        final long wrapPoint = currentTail - buffer.length;
+        final long wrapPoint = currentTail - array.length;
         if (head <= wrapPoint)
         {
             return false;
         }
 
-        buffer[(int)(currentTail % buffer.length)] = e;
+        array[(int)(currentTail % array.length)] = e;
         tail = currentTail + 1;
 
         return true;
@@ -72,9 +72,9 @@ public final class OneToOneConcurrentArrayQueue<E>
             return null;
         }
 
-        final int index = (int)(currentHead % buffer.length);
-        final E e = buffer[index];
-        buffer[index] = null;
+        final int index = (int)(currentHead % array.length);
+        final E e = array[index];
+        array[index] = null;
         head = currentHead + 1;
 
         return e;
@@ -104,7 +104,7 @@ public final class OneToOneConcurrentArrayQueue<E>
 
     public E peek()
     {
-        return buffer[(int)(head % buffer.length)];
+        return array[(int)(head % array.length)];
     }
 
     public int size()
@@ -126,7 +126,7 @@ public final class OneToOneConcurrentArrayQueue<E>
 
         for (long i = head, limit = tail; i < limit; i++)
         {
-            final E e = buffer[(int)(i % buffer.length)];
+            final E e = array[(int)(i % array.length)];
             if (o.equals(e))
             {
                 return true;

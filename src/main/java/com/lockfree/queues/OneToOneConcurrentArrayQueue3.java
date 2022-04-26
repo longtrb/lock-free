@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.real_logic.queues;
+package com.lockfree.queues;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -26,7 +26,7 @@ public final class OneToOneConcurrentArrayQueue3<E>
 {
     private final int capacity;
     private final int mask;
-    private final E[] buffer;
+    private final E[] array;
 
     private final AtomicLong tail = new PaddedAtomicLong(0);
     private final AtomicLong head = new PaddedAtomicLong(0);
@@ -44,7 +44,7 @@ public final class OneToOneConcurrentArrayQueue3<E>
     {
         this.capacity = findNextPositivePowerOfTwo(capacity);
         mask = this.capacity - 1;
-        buffer = (E[])new Object[this.capacity];
+        array = (E[])new Object[this.capacity];
     }
 
     public static int findNextPositivePowerOfTwo(final int value)
@@ -80,7 +80,7 @@ public final class OneToOneConcurrentArrayQueue3<E>
             }
         }
 
-        buffer[(int)currentTail & mask] = e;
+        array[(int)currentTail & mask] = e;
         tail.lazySet(currentTail + 1);
 
         return true;
@@ -99,8 +99,8 @@ public final class OneToOneConcurrentArrayQueue3<E>
         }
 
         final int index = (int)currentHead & mask;
-        final E e = buffer[index];
-        buffer[index] = null;
+        final E e = array[index];
+        array[index] = null;
         head.lazySet(currentHead + 1);
 
         return e;
@@ -130,7 +130,7 @@ public final class OneToOneConcurrentArrayQueue3<E>
 
     public E peek()
     {
-        return buffer[(int)head.get() & mask];
+        return array[(int)head.get() & mask];
     }
 
     public int size()
@@ -152,7 +152,7 @@ public final class OneToOneConcurrentArrayQueue3<E>
 
         for (long i = head.get(), limit = tail.get(); i < limit; i++)
         {
-            final E e = buffer[(int)i & mask];
+            final E e = array[(int)i & mask];
             if (o.equals(e))
             {
                 return true;

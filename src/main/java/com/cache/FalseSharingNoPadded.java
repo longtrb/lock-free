@@ -1,34 +1,42 @@
 package com.cache;
 
 
+import org.openjdk.jol.info.ClassLayout;
+
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class FalseSharing
+public final class FalseSharingNoPadded
         implements Runnable
 {
     public final static int NUM_THREADS = 4; // change
     public final static long ITERATIONS = 500L * 1000L * 1000L;
     private final int arrayIndex;
 
-    private static PaddedAtomicLong[] longs = new PaddedAtomicLong[NUM_THREADS];
+    private static AtomicLong[] longs = new AtomicLong[NUM_THREADS];
     static
     {
         for (int i = 0; i < longs.length; i++)
         {
-            longs[i] = new PaddedAtomicLong();
+            longs[i] = new AtomicLong();
         }
     }
 
-    public FalseSharing(final int arrayIndex)
+    public FalseSharingNoPadded(final int arrayIndex)
     {
         this.arrayIndex = arrayIndex;
     }
 
     public static void main(final String[] args) throws Exception
     {
+
+        System.out.println(ClassLayout.parseClass(AtomicLong.class).toPrintable());
+        Thread.sleep(5000);
+        System.gc();
+
+
         final long start = System.nanoTime();
         runTest();
-        System.out.println("duration = " + (System.nanoTime() - start));
+        System.out.println("Ran " + ITERATIONS + " iterations in duration = " + (System.nanoTime() - start));
     }
 
     private static void runTest() throws InterruptedException
@@ -37,7 +45,7 @@ public final class FalseSharing
 
         for (int i = 0; i < threads.length; i++)
         {
-            threads[i] = new Thread(new FalseSharing(i));
+            threads[i] = new Thread(new FalseSharingNoPadded(i));
         }
 
         for (Thread t : threads)
@@ -60,14 +68,5 @@ public final class FalseSharing
         }
     }
 
-    public static long sumPaddingToPreventOptimisation(final int index)
-    {
-        PaddedAtomicLong v = longs[index];
-        return v.p1 + v.p2 + v.p3 + v.p4 + v.p5 + v.p6;
-    }
 
-    public static class PaddedAtomicLong extends AtomicLong
-    {
-        public volatile long p1, p2, p3, p4, p5, p6 = 7L;
-    }
 }

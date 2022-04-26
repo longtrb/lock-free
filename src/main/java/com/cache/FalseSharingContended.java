@@ -2,10 +2,11 @@ package com.cache;
 
 
 import org.openjdk.jol.info.ClassLayout;
+import sun.misc.Contended;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class FalseSharingWithPadded
+public final class FalseSharingContended
         implements Runnable
 {
     public final static int NUM_THREADS = 4; // change
@@ -21,7 +22,7 @@ public final class FalseSharingWithPadded
         }
     }
 
-    public FalseSharingWithPadded(final int arrayIndex)
+    public FalseSharingContended(final int arrayIndex)
     {
         this.arrayIndex = arrayIndex;
     }
@@ -44,7 +45,7 @@ public final class FalseSharingWithPadded
 
         for (int i = 0; i < threads.length; i++)
         {
-            threads[i] = new Thread(new FalseSharingWithPadded(i));
+            threads[i] = new Thread(new FalseSharingContended(i));
         }
 
         for (Thread t : threads)
@@ -67,14 +68,11 @@ public final class FalseSharingWithPadded
         }
     }
 
-    public static long sumPaddingToPreventOptimisation(final int index)
-    {
-        PaddedAtomicLong v = longs[index];
-        return v.p1 + v.p2 + v.p3 + v.p4 + v.p5 ;
-    }
+
 
     public static class PaddedAtomicLong extends AtomicLong
     {
-        public volatile long p1, p2, p3, p4, p5 = 7L;
+        @Contended
+        private long p1, p2=0;
     }
 }

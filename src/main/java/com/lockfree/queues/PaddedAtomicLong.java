@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.real_logic.queues;
+package com.lockfree.queues;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,6 +26,11 @@ public class PaddedAtomicLong extends AtomicLong
     public PaddedAtomicLong(final long initialValue)
     {
         super(initialValue);
+    }
+
+    public long sumPaddingToPreventOptimisation()
+    {
+        return p1 + p2 + p3 + p4 +p5 + p6;
     }
 
     public volatile long p1, p2, p3, p4, p5, p6 = 7;
